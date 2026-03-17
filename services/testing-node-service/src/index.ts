@@ -1,10 +1,17 @@
 import express from "express";
+import client from "prom-client";
+import { metricsMiddleware } from "./metrics/index.js";
+import { middleware } from "./middleware.js";
 
 const app = express();
 
 app.use(express.json());
+app.use(middleware);
+app.use(metricsMiddleware);
 
-app.get("/user", (req, res) => {
+app.get("/user", async (req, res) => {
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     res.send({
         name: "John Doe",
         age: 25,
@@ -19,4 +26,12 @@ app.post("/user", (req, res) => {
     });
 });
 
-app.listen(3000);
+app.get("/metrics", async (req, res) => {
+    const metrics = await client.register.metrics();
+    res.set('Content-Type', client.register.contentType);
+    res.end(metrics);
+})
+
+app.listen(3000, () => {
+    console.log("Server running on port 3000")
+});
