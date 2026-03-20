@@ -1,31 +1,41 @@
 package database
 
 import (
-	"database/sql"
+	"auth-service/internal/models"
 	"log"
 	"os"
 
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DB *sql.DB
+var DB *gorm.DB
 
 func Connect() {
-
 	err := godotenv.Load()
-	port := os.Getenv("PORT")
-	postgresql := os.Getenv("DB_URL")
-
-	connStr := postgresql
-
-	db, err := sql.Open("postgres", connStr)
-
 	if err != nil {
-		log.Fatal(err)
+		log.Println(".env file not found, using system environment variables")
+	}
+
+	dsn := os.Getenv("DB_URL")
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
 	}
 
 	DB = db
 
-	log.Println("PostgreSQL Connected", port)
+	Migrate()
+
+	log.Println("PostgreSQL Connected with GORM")
+}
+
+func Migrate() {
+	err := DB.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatal("Failed to migrate database:", err)
+	}
+	log.Println("Database migrated successfully")
 }

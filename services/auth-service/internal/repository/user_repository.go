@@ -6,27 +6,15 @@ import (
 )
 
 func CreateUser(user models.User) error {
-	query := `Insert into users (id, email, password, created_at) Values ($1, $2. $3, $4)`
-	_, err := database.DB.Exec(query, user.ID, user.Email, user.Password, user.CreatedAt)
-
-	return err
+	result := database.DB.Create(&user)
+	return result.Error
 }
 
 func FindUserByEmail(email string) (*models.User, error) {
-	query := `SELECT id,email,password,created_at FROM users WHERE email=$1`
-	row := database.DB.QueryRow(query, email)
 	var user models.User
-
-	err := row.Scan(
-		&user.ID,
-		&user.Email,
-		&user.Password,
-		&user.CreatedAt,
-	)
-
-	if err != nil {
-		return nil, err
+	result := database.DB.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-
 	return &user, nil
 }
