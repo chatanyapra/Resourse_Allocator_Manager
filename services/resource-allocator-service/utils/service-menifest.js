@@ -12,8 +12,8 @@ export function createServiceManifest(appName, port = 80) {
             },
             ports: [
                 {
-                    port: port,
-                    targetPort: port
+                    port: 80,           // Ingress connects to this
+                    targetPort: port    // Forwards to the actual container port (e.g. 5800)
                 }
             ]
         }

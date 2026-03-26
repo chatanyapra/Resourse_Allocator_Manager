@@ -109,6 +109,97 @@ export async function createIngress(manifest, namespace = "default") {
     }
 }
 
+export async function deleteDeployment(deploymentName, namespace = "default") {
+    try {
+        console.log(`🗑️ Deleting deployment: ${deploymentName} in namespace: ${namespace}`);
+
+        const result = await k8sApi.deleteNamespacedDeployment({
+            name: deploymentName,
+            namespace: namespace,
+            body: {
+                gracePeriodSeconds: 30,
+                propagationPolicy: 'Foreground'
+            }
+        });
+
+        console.log(`✅ Deployment ${deploymentName} deleted successfully`);
+        return result;
+    } catch (error) {
+        console.error(`❌ Error deleting deployment ${deploymentName}:`, error.message);
+
+        // Handle specific error cases
+        if (error.response?.statusCode === 404) {
+            console.log(`⚠️ Deployment ${deploymentName} not found (already deleted)`);
+            return { status: 'not_found' };
+        }
+
+        if (error.response) {
+            console.error('Kubernetes API error:', error.response.body);
+        }
+        throw error;
+    }
+}
+
+export async function deleteService(serviceName, namespace = "default") {
+    try {
+        console.log(`🗑️ Deleting service: ${serviceName} in namespace: ${namespace}`);
+
+        const result = await coreApi.deleteNamespacedService({
+            name: serviceName,
+            namespace: namespace,
+            body: {
+                gracePeriodSeconds: 30
+            }
+        });
+
+        console.log(`✅ Service ${serviceName} deleted successfully`);
+        return result;
+    } catch (error) {
+        console.error(`❌ Error deleting service ${serviceName}:`, error.message);
+
+        // Handle specific error cases
+        if (error.response?.statusCode === 404) {
+            console.log(`⚠️ Service ${serviceName} not found (already deleted)`);
+            return { status: 'not_found' };
+        }
+
+        if (error.response) {
+            console.error('Kubernetes API error:', error.response.body);
+        }
+        throw error;
+    }
+}
+
+export async function deleteIngress(ingressName, namespace = "default") {
+    try {
+        console.log(`🗑️ Deleting ingress: ${ingressName} in namespace: ${namespace}`);
+
+        const result = await k8sNetworkingApi.deleteNamespacedIngress({
+            name: ingressName,
+            namespace: namespace,
+            body: {
+                gracePeriodSeconds: 30
+            }
+        });
+
+        console.log(`✅ Ingress ${ingressName} deleted successfully`);
+        return result;
+    } catch (error) {
+        console.error(`❌ Error deleting ingress ${ingressName}:`, error.message);
+
+        // Handle specific error cases
+        if (error.response?.statusCode === 404) {
+            console.log(`⚠️ Ingress ${ingressName} not found (already deleted)`);
+            return { status: 'not_found' };
+        }
+
+        if (error.response) {
+            console.error('Kubernetes API error:', error.response.body);
+        }
+        throw error;
+    }
+}
+
 export async function cleanupPortForwards() {
     for (const [key, process] of activePortForwards) {
         if (process && process.kill) {

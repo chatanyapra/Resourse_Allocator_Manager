@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ===== KUBELITHO DESIGN SYSTEM: "Precision Lithography" ===== */
+
+  /* --- Surface & Background Hierarchy --- */
+  --color-surface: #111316;
+  --color-surface-dim: #111316;
+  --color-surface-bright: #37393d;
+  --color-surface-container: #1e2023;
+  --color-surface-container-low: #1a1c1f;
+  --color-surface-container-high: #282a2d;
+  --color-surface-container-highest: #333538;
+  --color-surface-container-lowest: #0c0e11;
+  --color-surface-variant: #333538;
+  --color-surface-tint: #b2c5ff;
+  --color-background: #111316;
+  --color-on-background: #e2e2e6;
+
+  /* --- Primary --- */
+  --color-primary: #b2c5ff;
+  --color-primary-container: #326ce5;
+  --color-primary-fixed: #dae2ff;
+  --color-primary-fixed-dim: #b2c5ff;
+  --color-on-primary: #002b73;
+  --color-on-primary-container: #faf9ff;
+  --color-on-primary-fixed: #001848;
+  --color-on-primary-fixed-variant: #0040a1;
+  --color-inverse-primary: #0b56cf;
+
+  /* --- Secondary --- */
+  --color-secondary: #b4c5fb;
+  --color-secondary-container: #344573;
+  --color-secondary-fixed: #dae2ff;
+  --color-secondary-fixed-dim: #b4c5fb;
+  --color-on-secondary: #1c2e5b;
+  --color-on-secondary-container: #a2b4e9;
+  --color-on-secondary-fixed: #021945;
+  --color-on-secondary-fixed-variant: #344573;
+
+  /* --- Tertiary --- */
+  --color-tertiary: #ffb691;
+  --color-tertiary-container: #be5200;
+  --color-tertiary-fixed: #ffdbcb;
+  --color-tertiary-fixed-dim: #ffb691;
+  --color-on-tertiary: #552100;
+  --color-on-tertiary-container: #fff8f6;
+  --color-on-tertiary-fixed: #341100;
+  --color-on-tertiary-fixed-variant: #783100;
+
+  /* --- Error --- */
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  /* --- Surfaces: On + Outline + Inverse --- */
+  --color-on-surface: #e2e2e6;
+  --color-on-surface-variant: #c3c6d6;
+  --color-outline: #8d909f;
+  --color-outline-variant: #434654;
+  --color-inverse-surface: #e2e2e6;
+  --color-inverse-on-surface: #2f3034;
+
+  /* --- Status Signals --- */
+  --color-status-healthy: #22c55e;
+  --color-status-pending: #3b82f6;
+  --color-status-warning: #be5200;
+  --color-status-error: #ffb4ab;
+  --color-status-offline: #94a3b8;
+
+  /* --- Typography --- */
+  --font-headline: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  /* --- Spacing --- */
+  --spacing-section: 2rem;
+  --spacing-card: 1.5rem;
+
+  /* -- Border Radius --- */
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ===== Base Body Styles ===== */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+/* ===== Material Symbols Config ===== */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* ===== Glass Panel Surface ===== */
+.glass-panel {
+  backdrop-filter: blur(20px);
+  background: rgba(17, 19, 22, 0.8);
+}
+
+/* ===== Gradient CTA ===== */
+.gradient-cta {
+  background: linear-gradient(135deg, #326ce5, #0b56cf);
+}
+
+/* ===== Scrollbar Styling ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333538;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #434654;
+}
+
+/* ===== Selection ===== */
+::selection {
+  background: rgba(50, 108, 229, 0.3);
+}
+
+/* ===== Keyframe Animations ===== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.8);
+  }
+}
+
+@keyframes terminal-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-terminal-blink {
+  animation: terminal-blink 1s step-end infinite;
+}
+
+/* ===== Staggered children animations ===== */
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0s;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 0.2s;
+}

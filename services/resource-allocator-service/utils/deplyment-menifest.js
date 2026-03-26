@@ -11,7 +11,7 @@ export function createDeploymentManifest({
         apiVersion: "apps/v1",
         kind: "Deployment",
         metadata: {
-            name: appName,
+            name: `${appName}-deployment`,
             labels: {
                 app: appName,
                 user: userId
@@ -52,14 +52,41 @@ export function createDeploymentManifest({
                                     memory
                                 }
                             },
+                            // Use TCP socket probe — many images (jlesage/firefox, code-server, etc.)
+                            // serve WebSocket-heavy UIs that don't respond to plain HTTP GET.
                             readinessProbe: {
-                                httpGet: {
-                                    path: "/",
+                                tcpSocket: {
                                     port: port
                                 },
-                                initialDelaySeconds: 5,
-                                periodSeconds: 5
+                                initialDelaySeconds: 30,
+                                periodSeconds: 10,
+                                failureThreshold: 6
+                            },
+                            // /dev/shm is essential for browser-based images (Firefox, Chrome, etc.)
+                            // Default Docker shm is only 64MB — Firefox will crash without this.
+                            volumeMounts: [
+                                {
+                                    name: "dshm",
+                                    mountPath: "/dev/shm"
+                                },
+                                {
+                                    name: "config",
+                                    mountPath: "/config"
+                                }
+                            ]
+                        }
+                    ],
+                    volumes: [
+                        {
+                            name: "dshm",
+                            emptyDir: {
+                                medium: "Memory",
+                                sizeLimit: "256Mi"
                             }
+                        },
+                        {
+                            name: "config",
+                            emptyDir: {}
                         }
                     ]
                 }

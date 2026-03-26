@@ -1,5 +1,5 @@
 import * as k8s from "@kubernetes/client-node";
-import { createDeployment, createIngress, createService, ensureIngressPortForward, getIngressIp } from "../kubernetes/k8s.service.js";
+import { createDeployment, createIngress, createService, deleteDeployment, deleteIngress, deleteService, ensureIngressPortForward, getIngressIp } from "../kubernetes/k8s.service.js";
 import { selectBestNode } from "../scheduler/schedulerClient.js";
 import { createDeploymentManifest } from "../utils/deplyment-menifest.js";
 import { createIngressManifest } from "../utils/ingress-manifest.js";
@@ -42,9 +42,9 @@ export async function allocateResource(req, res) {
             });
         }
 
-        if (memory < 64 || memory > 2048) {
+        if (memory < 64 || memory > 4096) {
             return res.status(400).json({
-                error: "Memory must be between 64 and 2048 MB"
+                error: "Memory must be between 64 and 4096 MB"
             });
         }
 
@@ -94,7 +94,7 @@ export async function allocateResource(req, res) {
             userId: userIdToUse
         });
 
-        const service = createServiceManifest(appName);
+        const service = createServiceManifest(appName, port);
         const ingressManifest = createIngressManifest({ appName, metalLBIp });
 
         // Update status to DEPLOYING
@@ -168,10 +168,49 @@ export async function deletePod(req, res) {
             });
         }
 
-        // TODO: Add Kubernetes cleanup here
-        // await deleteDeployment(allocation.deploymentId);
-        // await deleteService(allocation.serviceId);
-        // await deleteIngress(allocation.ingressId);
+        // Clean up Kubernetes resources in reverse order (ingress → service → deployment)
+        console.log(`🧹 Cleaning up Kubernetes resources for pod: ${appName}`);
+
+        const cleanupResults = {
+            ingress: null,
+            service: null,
+            deployment: null
+        };
+
+        // Delete ingress first (removes external access)
+        if (allocation.ingressId) {
+            try {
+                cleanupResults.ingress = await deleteIngress(allocation.ingressId);
+                console.log(`✅ Ingress ${allocation.ingressId} cleaned up`);
+            } catch (error) {
+                console.error(`⚠️ Failed to delete ingress ${allocation.ingressId}:`, error.message);
+                // Continue with other cleanup even if ingress fails
+            }
+        }
+
+        // Delete service second (removes internal load balancing)
+        if (allocation.serviceId) {
+            try {
+                cleanupResults.service = await deleteService(allocation.serviceId);
+                console.log(`✅ Service ${allocation.serviceId} cleaned up`);
+            } catch (error) {
+                console.error(`⚠️ Failed to delete service ${allocation.serviceId}:`, error.message);
+                // Continue with deployment cleanup even if service fails
+            }
+        }
+
+        // Delete deployment last (removes actual pods and containers)
+        if (allocation.deploymentId) {
+            try {
+                cleanupResults.deployment = await deleteDeployment(allocation.deploymentId);
+                console.log(`✅ Deployment ${allocation.deploymentId} cleaned up`);
+            } catch (error) {
+                console.error(`⚠️ Failed to delete deployment ${allocation.deploymentId}:`, error.message);
+                // Continue with database update even if deployment fails
+            }
+        }
+
+        console.log(`🎯 Kubernetes cleanup completed for pod: ${appName}`);
 
         // Update database record
         await DatabaseService.updateAllocationStatus(appName, 'DELETED');
