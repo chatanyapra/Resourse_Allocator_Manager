@@ -10,6 +10,9 @@ export async function allocateResource(req, res) {
     let allocationRecord = null;
 
     try {
+        // Get authenticated user from JWT middleware
+        const authenticatedUserId = req.user.id;
+
         // Extract user input with defaults
         const {
             email,
@@ -17,22 +20,16 @@ export async function allocateResource(req, res) {
             memory = 256,
             image = "nginx",
             port = 80,
-            userId // Optional: if provided, use it directly
         } = req.body;
 
-        // Validate required inputs
-        if (!email) {
-            return res.status(400).json({
-                error: "Email is required for pod allocation"
-            });
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({
-                error: "Invalid email format"
-            });
+        // Validate email format if provided
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({
+                    error: "Invalid email format"
+                });
+            }
         }
 
         // Validate resource limits
@@ -48,14 +45,15 @@ export async function allocateResource(req, res) {
             });
         }
 
-        console.log('🔍 Processing allocation request for:', { email, cpu, memory, image, port });
+        console.log('🔍 Processing allocation request for:', { authenticatedUserId, email, cpu, memory, image, port });
 
         const node = await selectBestNode();
-        const appName = `user-${Date.now()}-${email.split('@')[0]}`;
+        const emailPrefix = email ? email.split('@')[0] : authenticatedUserId.substring(0, 8);
+        const appName = `user-${Date.now()}-${emailPrefix}`;
 
-        // Find or create user based on email
+        // Use authenticated user ID from JWT; optionally update email via findOrCreateUser
         console.log('🔍 About to call findOrCreateUser...');
-        const user = await DatabaseService.findOrCreateUser(userId, email);
+        const user = await DatabaseService.findOrCreateUser(authenticatedUserId, email || `user-${authenticatedUserId}@app.local`);
         const userIdToUse = user.id;
 
         if (!userIdToUse) {
@@ -158,6 +156,7 @@ export async function allocateResource(req, res) {
 export async function deletePod(req, res) {
     try {
         const { appName } = req.params;
+        const authenticatedUserId = req.user.id;
 
         // Get allocation details first
         const allocation = await DatabaseService.getAllocationByAppName(appName);
@@ -165,6 +164,13 @@ export async function deletePod(req, res) {
         if (!allocation) {
             return res.status(404).json({
                 error: 'Pod allocation not found'
+            });
+        }
+
+        // Verify the authenticated user owns this allocation
+        if (allocation.userId !== authenticatedUserId) {
+            return res.status(403).json({
+                error: 'You do not have permission to delete this pod'
             });
         }
 
@@ -249,8 +255,8 @@ export async function getPodById(req, res) {
 
 export async function getUserPods(req, res) {
     try {
-        // For demo purposes, using a fixed user ID - in real app, get from auth
-        const userId = req.user?.id || "demo-user-123";
+        // Get authenticated user ID from JWT middleware
+        const userId = req.user.id;
 
         const allocations = await DatabaseService.getAllocationsByUserId(userId);
 

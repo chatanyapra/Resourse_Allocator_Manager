@@ -2,26 +2,25 @@ import express from "express";
 import {
     allocateResource,
     deletePod,
-    getAllPodsWithNodes,
     listAllPodsWithNodes,
     getPodById,
     getUserPods,
     getAllPods,
     getPodStats
 } from "../controllers/pod.controller.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Original routes (K8s-based)
-router.get("/list", listAllPodsWithNodes);  // Fixed: Use Express route handler
-router.get("/k8s/:id", getPodById);
+// ─── Public routes (no auth required) ───
+router.get("/list", listAllPodsWithNodes);       // K8s-based pod listing
+router.get("/stats", getPodStats);               // Pod statistics
 
-// New database-backed routes
-router.get("/", getAllPods);                    // Get all pods from database
-router.get("/user", getUserPods);               // Get current user's pods
-router.get("/stats", getPodStats);              // Get pod statistics
-router.get("/:appName", getPodById);            // Get specific pod by app name
-router.post("/allocate", allocateResource);     // Create new pod allocation
-router.delete("/:appName", deletePod);          // Delete pod allocation
+// ─── Protected routes (JWT required) ───
+router.get("/", authenticate, getAllPods);                    // Get all pods from database
+router.get("/user", authenticate, getUserPods);              // Get current user's pods
+router.get("/:appName", authenticate, getPodById);           // Get specific pod by app name
+router.post("/allocate", authenticate, allocateResource);    // Create new pod allocation
+router.delete("/:appName", authenticate, deletePod);         // Delete pod allocation
 
 export default router;

@@ -48,8 +48,66 @@ func Login(c *fiber.Ctx) error {
 	token, _ := middleware.GenerateToken(user.ID)
 	return c.JSON(fiber.Map{
 		"token": token,
-		"user": user,
+		"user":  user,
 	})
+}
+
+// VerifyToken validates a JWT token and returns the decoded user info.
+// Other microservices can call this endpoint to verify tokens.
+func VerifyToken(c *fiber.Ctx) error {
+	var tokenString string
+
+	// Try Authorization header first
+	authHeader := c.Get("Authorization")
+	if authHeader != "" {
+		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			tokenString = authHeader[7:]
+		} else {
+			tokenString = authHeader
+		}
+	}
+
+	// Fall back to request body
+	if tokenString == "" {
+		var body struct {
+			Token string `json:"token"`
+		}
+		if err := c.BodyParser(&body); err == nil && body.Token != "" {
+			tokenString = body.Token
+		}
+	}
+
+	if tokenString == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Token is required (via Authorization header or body)",
+			"code":  "TOKEN_MISSING",
+		})
+	}
+
+	claims, err := middleware.VerifyToken(tokenString)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{
+			"valid": false,
+			"error": "Invalid or expired token",
+			"code":  "TOKEN_INVALID",
+		})
+	}
+
+	userID, _ := claims["user_id"].(string)
+
+	// Optionally fetch user details
+	user, userErr := service.GetUserByID(userID)
+
+	response := fiber.Map{
+		"valid":   true,
+		"user_id": userID,
+	}
+
+	if userErr == nil && user != nil {
+		response["user"] = user
+	}
+
+	return c.JSON(response)
 }
 
 func GetUserProfile(c *fiber.Ctx) error {
