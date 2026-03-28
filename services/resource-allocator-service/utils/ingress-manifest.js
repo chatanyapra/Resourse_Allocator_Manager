@@ -25,7 +25,7 @@ export function createIngressManifest({ appName, metalLBIp }) {
         },
 
         spec: {
-
+            ingressClassName: "nginx",
             rules: [
 
                 {

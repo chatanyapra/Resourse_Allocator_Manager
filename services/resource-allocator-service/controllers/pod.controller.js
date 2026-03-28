@@ -1,5 +1,5 @@
 import * as k8s from "@kubernetes/client-node";
-import { createDeployment, createIngress, createService, deleteDeployment, deleteIngress, deleteService, ensureIngressPortForward, getIngressIp } from "../kubernetes/k8s.service.js";
+import { createDeployment, createIngress, createService, deleteDeployment, deleteIngress, deleteService, ensureIngressPortForward, getIngressIp, getCurrentIngressPort } from "../kubernetes/k8s.service.js";
 import { selectBestNode } from "../scheduler/schedulerClient.js";
 import { createDeploymentManifest } from "../utils/deplyment-menifest.js";
 import { createIngressManifest } from "../utils/ingress-manifest.js";
@@ -14,13 +14,17 @@ export async function allocateResource(req, res) {
         const authenticatedUserId = req.user.id;
 
         // Extract user input with defaults
-        const {
+        let {
             email,
             cpu = 200,
             memory = 256,
             image = "nginx",
             port = 80,
         } = req.body;
+
+        cpu = parseInt(cpu, 10);
+        memory = parseInt(memory, 10);
+        port = parseInt(port, 10);
 
         // Validate email format if provided
         if (email) {
@@ -243,9 +247,35 @@ export async function getPodById(req, res) {
             });
         }
 
+        // If pod is running, ensure port-forward is active
+        let ingressPort = getCurrentIngressPort();
+        if (allocation.status === 'RUNNING') {
+            try {
+                ingressPort = await ensureIngressPortForward();
+                console.log(`[getPodById] Ingress port-forward ensured on localhost:${ingressPort} for pod: ${appName}`);
+            } catch (pfError) {
+                console.error(`[getPodById] Failed to ensure port-forward for pod ${appName}:`, pfError.message);
+            }
+        }
+
+        // Update URL with current port (in case server restarted on different port)
+        let currentUrl = allocation.url;
+        if (allocation.status === 'RUNNING' && currentUrl) {
+            // Replace port in URL with current ingress port
+            const urlObj = new URL(currentUrl);
+            if (urlObj.port !== String(ingressPort)) {
+                urlObj.port = ingressPort;
+                currentUrl = urlObj.toString();
+            }
+        }
+
         res.json({
             success: true,
-            pod: allocation
+            pod: {
+                ...allocation,
+                url: currentUrl
+            },
+            ingressPort
         });
     } catch (error) {
         console.error("Error retrieving pod:", error);
@@ -260,10 +290,34 @@ export async function getUserPods(req, res) {
 
         const allocations = await DatabaseService.getAllocationsByUserId(userId);
 
+        // Check if any pods are running and ensure port-forward is active
+        let ingressPort = getCurrentIngressPort();
+        const hasRunningPods = allocations.some(a => a.status === 'RUNNING');
+        if (hasRunningPods) {
+            try {
+                ingressPort = await ensureIngressPortForward();
+            } catch (pfError) {
+                console.error('[getUserPods] Failed to ensure port-forward:', pfError.message);
+            }
+        }
+
+        // Update URLs with current port
+        const updatedAllocations = allocations.map(allocation => {
+            if (allocation.status === 'RUNNING' && allocation.url) {
+                const urlObj = new URL(allocation.url);
+                if (urlObj.port !== String(ingressPort)) {
+                    urlObj.port = ingressPort;
+                    return { ...allocation, url: urlObj.toString() };
+                }
+            }
+            return allocation;
+        });
+
         res.json({
             success: true,
-            pods: allocations,
-            total: allocations.length
+            pods: updatedAllocations,
+            total: allocations.length,
+            ingressPort
         });
     } catch (error) {
         console.error("Error retrieving user pods:", error);
