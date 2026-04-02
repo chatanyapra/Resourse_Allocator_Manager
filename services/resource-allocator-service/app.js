@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import podRoutes from "./routes/pod.routes.js";
+import aiRoutes from "./routes/ai.routes.js";   // <-- new import
 import { errorHandler } from "./middleware/error.middleware.js";
 
 const app = express();
@@ -21,6 +22,7 @@ app.get("/health", (req, res) => {
 
 // API routes
 app.use("/api/pod", podRoutes);
+app.use("/api/ai", aiRoutes);   // <-- new AI route
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
