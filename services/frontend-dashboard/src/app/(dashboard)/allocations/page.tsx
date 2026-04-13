@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { podApi, type PodAllocation } from "@/lib/api";
 
@@ -23,6 +24,7 @@ const statusDotStyles: Record<string, string> = {
 
 export default function AllocationsPage() {
   const { isAdmin } = useAuth();
+  const router = useRouter();
   const [pods, setPods] = useState<PodAllocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -279,21 +281,33 @@ export default function AllocationsPage() {
                       {formatDate(pod.createdAt)}
                     </td>
                     <td className="px-6 py-3.5">
-                      <button
-                        onClick={() => handleDelete(pod.appName)}
-                        disabled={
-                          deletingPod === pod.appName ||
-                          pod.status === "DELETED"
-                        }
-                        className="p-1.5 text-slate-500 hover:text-error hover:bg-error/10 rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Delete Pod"
-                      >
-                        <span className="material-symbols-outlined text-sm">
-                          {deletingPod === pod.appName
-                            ? "progress_activity"
-                            : "delete"}
-                        </span>
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => router.push(`/deployments?app=${encodeURIComponent(pod.appName)}`)}
+                          disabled={pod.status === "DELETED"}
+                          className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="View Logs"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            terminal
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(pod.appName)}
+                          disabled={
+                            deletingPod === pod.appName ||
+                            pod.status === "DELETED"
+                          }
+                          className="p-1.5 text-slate-500 hover:text-error hover:bg-error/10 rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Delete Pod"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            {deletingPod === pod.appName
+                              ? "progress_activity"
+                              : "delete"}
+                          </span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
