@@ -73,27 +73,25 @@ export default function DashboardPage() {
   ];
 
   return (
-    <>
+    <div>
       {/* Welcome Row */}
       <div className="mb-10 flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-black text-on-surface tracking-tight">
             Welcome back, {displayName}
           </h2>
-          <p className="text-on-surface-variant text-sm mt-1">
-            Fleet overview and resource distribution across your cluster.
-          </p>
         </div>
-        <div className="flex gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-lg">
-            <div
-              className="w-2 h-2 rounded-full bg-green-500"
-              style={{ boxShadow: "0 0 8px rgba(34, 197, 94, 0.6)" }}
-            />
-            <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">
-              Cluster Online
-            </span>
-          </div>
+      </div>
+
+      <div className="flex gap-3">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-lg mb-4">
+          <div
+            className="w-2 h-2 rounded-full bg-green-500"
+            style={{ boxShadow: "0 0 8px rgba(34, 197, 94, 0.6)" }}
+          />
+          <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">
+            Cluster Online
+          </span>
         </div>
       </div>
 
@@ -127,20 +125,18 @@ export default function DashboardPage() {
 
               {stat.signal && (
                 <div
-                  className={`w-2 h-2 rounded-full ${stat.signal.color} ${
-                    stat.signal.pulse ? "animate-pulse" : ""
-                  }`}
+                  className={`w-2 h-2 rounded-full ${stat.signal.color} ${stat.signal.pulse ? "animate-pulse" : ""
+                    }`}
                   style={
                     stat.signal.glow
                       ? {
-                          boxShadow: `0 0 8px ${
-                            stat.signal.color.includes("green")
-                              ? "rgba(34, 197, 94, 0.6)"
-                              : stat.signal.color.includes("blue")
-                              ? "rgba(96, 165, 250, 0.6)"
-                              : "rgba(255, 180, 171, 0.6)"
+                        boxShadow: `0 0 8px ${stat.signal.color.includes("green")
+                          ? "rgba(34, 197, 94, 0.6)"
+                          : stat.signal.color.includes("blue")
+                            ? "rgba(96, 165, 250, 0.6)"
+                            : "rgba(255, 180, 171, 0.6)"
                           }`,
-                        }
+                      }
                       : undefined
                   }
                 />
@@ -161,6 +157,6 @@ export default function DashboardPage() {
 
       {/* System Logs */}
       <SystemLogs />
-    </>
+    </div>
   );
 }

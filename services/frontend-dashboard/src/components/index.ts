@@ -5,3 +5,4 @@ export { default as TelemetryChart } from "./TelemetryChart";
 export { default as ActivityFeed } from "./ActivityFeed";
 export { default as StatusBanner } from "./StatusBanner";
 export { default as SystemLogs } from "./SystemLogs";
+export { default as DeploymentLogsViewer } from "./LogsViewer";
