@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 interface SettingSection {
   title: string;
@@ -38,14 +39,40 @@ const settingSections: SettingSection[] = [
   },
 ];
 
-function Toggle({ defaultOn = true }: { defaultOn?: boolean }) {
-  const [on, setOn] = useState(defaultOn);
+function Toggle({
+  defaultOn = true,
+  checked,
+  onChange,
+  label,
+}: {
+  defaultOn?: boolean;
+  checked?: boolean;
+  onChange?: (checked: boolean) => void;
+  label: string;
+}) {
+  const [localOn, setLocalOn] = useState(defaultOn);
+  const on = checked ?? localOn;
+
+  const handleClick = () => {
+    const next = !on;
+    if (onChange) {
+      onChange(next);
+      return;
+    }
+
+    setLocalOn(next);
+  };
+
   return (
     <button
-      onClick={() => setOn(!on)}
+      onClick={handleClick}
       className={`w-11 h-6 rounded-full transition-colors duration-200 relative cursor-pointer ${
         on ? "bg-primary-container" : "bg-surface-container-highest"
       }`}
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
     >
       <div
         className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform duration-200 ${
@@ -57,6 +84,8 @@ function Toggle({ defaultOn = true }: { defaultOn?: boolean }) {
 }
 
 export default function SettingsPage() {
+  const { isDark, setTheme } = useTheme();
+
   return (
     <>
       <div className="mb-8">
@@ -84,11 +113,22 @@ export default function SettingsPage() {
                     <p className="text-[10px] text-slate-500 mt-0.5">{setting.description}</p>
                   </div>
                   {setting.type === "toggle" ? (
-                    <Toggle />
+                    <Toggle
+                      label={setting.label}
+                      checked={setting.label === "Dark Mode" ? isDark : undefined}
+                      onChange={
+                        setting.label === "Dark Mode"
+                          ? (checked) => setTheme(checked ? "dark" : "light")
+                          : undefined
+                      }
+                    />
                   ) : (
-                    <select className="bg-surface-container-highest border-none rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-primary-container/50 cursor-pointer">
+                    <select
+                      className="bg-surface-container-highest border-none rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-primary-container/50 cursor-pointer"
+                      defaultValue={setting.value}
+                    >
                       {setting.options?.map((opt) => (
-                        <option key={opt} selected={opt === setting.value}>{opt}</option>
+                        <option key={opt}>{opt}</option>
                       ))}
                     </select>
                   )}

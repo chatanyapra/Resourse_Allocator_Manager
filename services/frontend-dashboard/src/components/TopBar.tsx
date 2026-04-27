@@ -1,9 +1,11 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function TopBar() {
   const { user, isAdmin, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const displayName = user?.email?.split("@")[0] || "User";
   const initials = displayName.charAt(0).toUpperCase();
@@ -11,14 +13,7 @@ export default function TopBar() {
   return (
     <header
       id="topbar"
-      className="fixed top-0 w-[calc(100%-16rem)] z-40 flex justify-between items-center px-8 py-3"
-      style={{
-        background: "rgba(15, 23, 42, 0.8)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-        boxShadow: "0 25px 50px -12px rgba(30, 64, 175, 0.15)",
-      }}
+      className="fixed top-0 w-[calc(100%-16rem)] z-40 flex justify-between items-center px-8 py-3 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-[0_25px_50px_-12px_rgba(30,64,175,0.15)]"
     >
       {/* Search */}
       <div className="flex items-center gap-4 flex-1">
@@ -46,9 +41,15 @@ export default function TopBar() {
           </button>
           <button
             id="btn-theme-toggle"
-            className="p-2 text-slate-400 hover:text-slate-100 hover:bg-white/5 rounded-full transition-all cursor-pointer"
+            onClick={toggleTheme}
+            className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-full transition-all cursor-pointer"
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            aria-pressed={isDark}
           >
-            <span className="material-symbols-outlined">contrast</span>
+            <span className="material-symbols-outlined">
+              {isDark ? "light_mode" : "dark_mode"}
+            </span>
           </button>
         </div>
 
