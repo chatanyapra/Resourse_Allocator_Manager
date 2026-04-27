@@ -39,11 +39,7 @@ export default function Sidebar() {
   return (
     <aside
       id="sidebar"
-      className="fixed left-0 top-0 h-screen w-64 z-50 flex flex-col py-8"
-      style={{
-        backgroundColor: "#030712",
-        boxShadow: "4px 0 24px rgba(0, 0, 0, 0.5)",
-      }}
+      className="fixed left-0 top-0 h-screen w-64 z-50 flex flex-col py-8 bg-surface-container-lowest border-r border-outline-variant/20 shadow-[4px_0_24px_rgba(0,0,0,0.18)]"
     >
       {/* Logo / Brand */}
       <div className="px-6 mb-8">
