@@ -354,6 +354,21 @@ export async function getPodStats(req, res) {
     }
 }
 
+export async function getPodsGroupedByNodeHandler(req, res) {
+    try {
+        const grouped = await getPodsGroupedByNode();
+
+        res.json({
+            success: true,
+            grouped,
+            message: 'Pods grouped by node retrieved successfully'
+        });
+    } catch (error) {
+        console.error('Error retrieving grouped pods:', error);
+        res.status(500).json({ error: 'Failed to retrieve grouped pods' });
+    }
+}
+
 export async function getAllPodsWithNodes() {
     const kc = new k8s.KubeConfig();
     kc.loadFromDefault();
