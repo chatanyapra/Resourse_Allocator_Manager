@@ -12,8 +12,12 @@ import (
 )
 
 func main() {
+	// Try to load .env from multiple locations
 	if err := godotenv.Load(); err != nil {
-		log.Println(".env file not found, using system environment variables")
+		// Try loading from parent directory (when running from cmd/)
+		if err := godotenv.Load("../.env"); err != nil {
+			log.Println(".env file not found, using system environment variables")
+		}
 	}
 
 	port := os.Getenv("PORT")
