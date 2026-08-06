@@ -28,9 +28,102 @@ The project relies on multiple interconnected services under the `services/` dir
 - **Technology:** Node.js, Express, Prisma ORM, Kubernetes Client Node (`@kubernetes/client-node`)
 - **Details:** The engine that interacts directly with the Kubernetes API. Validates the JWT tokens and allows authorized users to provision, track, or delete backend allocations (e.g., K8s pods) associated with their account.
 
+
+## 🖥️ Running the Kubernetes Cluster (Windows)
+
+> **Prerequisite:** Install and start **Docker Desktop** before proceeding. Ensure Docker Desktop is running and WSL2 is enabled (recommended).
+
+### 1. Install Chocolatey
+
+Open **Windows PowerShell as Administrator** and run:
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force
+```
+
+Then install Chocolatey:
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; `
+[System.Net.ServicePointManager]::SecurityProtocol = `
+[System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+Verify the installation:
+
+```powershell
+choco --version
+```
+
+---
+
+### 2. Install kubectl
+
+Install the Kubernetes CLI:
+
+```powershell
+choco install kubernetes-cli -y
+```
+
+Verify the installation:
+
+```powershell
+kubectl version --client
+```
+
+---
+
+### 3. Install Kind
+
+Install **Kind (Kubernetes IN Docker)**:
+
+```powershell
+choco install kind -y
+```
+
+Verify the installation:
+
+```powershell
+kind version
+```
+
+Expected output:
+
+```text
+kind v0.xx.x
+```
+
+---
+
+### 4. Verify Docker
+
+Before creating a Kubernetes cluster, ensure Docker Desktop is running.
+
+```powershell
+docker version
+```
+
+```powershell
+docker ps
+```
+
+
 ## 🐳 Infrastructure & Deployment (`/k8s`)
 
-The project contains Kubernetes manifest files to deploy the whole infrastructure smoothly structure via tools like `kind` or Minikube. 
+The project contains Kubernetes manifest files to deploy the whole infrastructure smoothly structure via tools like `kind` or Minikube.
+
+### Deploy all Kubernetes resources with a single manifest
+Apply the combined manifest to install Prometheus, Grafana, node-exporter, and the sample application in one step:
+
+```bash
+# Create the Kind cluster
+kind create cluster --config k8s/kind-cluster.yaml
+
+# Apply the main Kubernetes manifest
+kubectl apply -f k8s/main.yaml
+```
+
 - **Prometheus & Node Exporter:** Gathers deep system-level and orchestrator-level metrics.
 - **Grafana:** Offers comprehensive visual dashboards for understanding resource allocation loads at a glance.
 

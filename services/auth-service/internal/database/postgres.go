@@ -13,9 +13,12 @@ import (
 var DB *gorm.DB
 
 func Connect() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println(".env file not found, using system environment variables")
+	// Try to load .env from multiple locations
+	if err := godotenv.Load(); err != nil {
+		// Try loading from parent directory (when running from cmd/)
+		if err := godotenv.Load("../../.env"); err != nil {
+			log.Println(".env file not found, using system environment variables")
+		}
 	}
 
 	// Use DATABASE_URL to match the Node.js service

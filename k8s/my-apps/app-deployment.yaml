@@ -14,13 +14,12 @@ spec:
         app: ubuntu-app
     spec:
       nodeSelector:
-        role: apps # ensures it runs on app nodes
+        role: apps
       containers:
         - name: ubuntu
           image: ubuntu
           command: ["/bin/bash", "-c", "while true; do sleep 30; done;"]
 
-          # 🔥 THIS IS WHAT YOU NEED
           resources:
             requests:
               cpu: "200m"
