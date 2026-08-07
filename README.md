@@ -127,6 +127,26 @@ kubectl apply -f k8s/main.yaml
 - **Prometheus & Node Exporter:** Gathers deep system-level and orchestrator-level metrics.
 - **Grafana:** Offers comprehensive visual dashboards for understanding resource allocation loads at a glance.
 
+### Install NGINX Ingress Controller
+
+**Why NGINX Ingress?** NGINX Ingress Controller provides HTTP/S load balancing, SSL/TLS termination, and routing rules to expose your Kubernetes services to external traffic. It acts as a reverse proxy, directing incoming requests to the appropriate backend services based on configured rules.
+
+For Kind clusters, install the NGINX Ingress Controller:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+```
+
+Wait for the ingress controller to be ready:
+
+```bash
+kubectl wait \
+--namespace ingress-nginx \
+--for=condition=Ready pod \
+--selector=app.kubernetes.io/component=controller \
+--timeout=180s
+```
+
 ## ⚙️ Getting Started
 
 ### Prerequisites
@@ -144,7 +164,7 @@ Each individual microservice requires its own `.env` file configuration (e.g., `
 1. **Start the Auth Service:**
    ```bash
    cd services/auth-service
-   go run main.go
+   go run cmd/main.go
    ```
 
 2. **Start the Resource Allocator Service:**
